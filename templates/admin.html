@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dental Knowledge Hub | Admin Ingestion Pipeline</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2">
+</head>
+<body class="theme-admin">
+    <div class="admin-container">
+        <!-- ADMIN HEADER -->
+        <header class="admin-header">
+            <div class="header-left">
+                <div class="admin-badge">
+                    <i class="fa-solid fa-brain"></i>
+                    <span>Knowledge Hub</span>
+                </div>
+                <h2>Dental RAG Pipeline & Vector Index Manager</h2>
+            </div>
+            <div class="header-actions">
+                {% if admin_email %}
+                <div class="admin-user-pill" style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 20px; font-size: 12.5px; color: var(--accent);">
+                    <i class="fa-solid fa-user-check"></i>
+                    <span>{{ admin_email }}</span>
+                </div>
+                {% endif %}
+                <button class="nav-btn btn-glass" id="openSettingsBtn">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>API Settings</span>
+                </button>
+                <a href="/" class="nav-btn btn-accent">
+                    <i class="fa-solid fa-comments"></i>
+                    <span>Patient Chat UI</span>
+                </a>
+                <a href="/logout" class="nav-btn btn-glass" style="border-color: rgba(239, 68, 68, 0.35); color: #fca5a5;" title="Sign out of Admin Hub">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>Log Out</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- DASHBOARD STATS METRICS -->
+        <section class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon icon-pinecone">
+                    <i class="fa-solid fa-database"></i>
+                </div>
+                <div class="metric-info">
+                    <span class="metric-label">Pinecone Vectors</span>
+                    <h3 id="statVectorCount">0</h3>
+                    <span class="metric-sub" id="statIndexName">Index: dental-ortho-kb</span>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon icon-docs">
+                    <i class="fa-solid fa-book-bookmark"></i>
+                </div>
+                <div class="metric-info">
+                    <span class="metric-label">Dental Textbooks in src/</span>
+                    <h3 id="statDocCount">1</h3>
+                    <span class="metric-sub" id="statDocDefault">Default: Guide to Orthodontics</span>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon icon-model">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div class="metric-info">
+                    <span class="metric-label">OpenRouter LLM</span>
+                    <h4 id="statLlmModel">Llama 3.3 70B</h4>
+                    <span class="metric-sub" id="statEmbedModel">Embed: text-embedding-3-small</span>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon icon-status">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="metric-info">
+                    <span class="metric-label">API Configuration</span>
+                    <h4 id="statApiStatus">Checking...</h4>
+                    <span class="metric-sub" id="statKeyStatus">Pinecone & OpenRouter</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- MAIN WORKSPACE: PIPELINE & UPLOADER -->
+        <div class="admin-main-grid">
+            <!-- PIPELINE RUNNER CARD -->
+            <section class="dashboard-card pipeline-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-gears"></i>
+                        <h3>RAG Ingestion & Indexing Pipeline</h3>
+                    </div>
+                    <span class="badge-stage" id="currentStageBadge">IDLE</span>
+                </div>
+
+                <div class="card-content">
+                    <p class="pipeline-description">
+                        Select a dental book from <code>src/</code> and execute the automated 5-stage pipeline: 
+                        <strong>Data Ingestion</strong> ➔ <strong>Preprocessing</strong> ➔ <strong>Chunking</strong> ➔ <strong>Embeddings Generation</strong> ➔ <strong>Pinecone Upsert</strong>.
+                    </p>
+
+                    <div class="pipeline-controls">
+                        <div class="select-group">
+                            <label for="documentSelect">Select Dental Book to Process:</label>
+                            <select id="documentSelect" class="form-select">
+                                <option value="a_20guide_20to_20orthodontics.pdf">a_20guide_20to_20orthodontics.pdf (Primary Textbook)</option>
+                            </select>
+                        </div>
+                        <button id="runPipelineBtn" class="btn-primary btn-run">
+                            <i class="fa-solid fa-play"></i>
+                            <span>Run Ingestion Pipeline</span>
+                        </button>
+                    </div>
+
+                    <!-- 5-STAGE VISUAL STEPPER -->
+                    <div class="pipeline-stepper">
+                        <div class="step-item" id="step-ingestion">
+                            <div class="step-circle"><i class="fa-solid fa-file-pdf"></i></div>
+                            <span class="step-name">1. Ingestion</span>
+                        </div>
+                        <div class="step-connector" id="conn-1"></div>
+
+                        <div class="step-item" id="step-preprocessing">
+                            <div class="step-circle"><i class="fa-solid fa-filter"></i></div>
+                            <span class="step-name">2. Preprocessing</span>
+                        </div>
+                        <div class="step-connector" id="conn-2"></div>
+
+                        <div class="step-item" id="step-chunking">
+                            <div class="step-circle"><i class="fa-solid fa-cubes"></i></div>
+                            <span class="step-name">3. Chunking</span>
+                        </div>
+                        <div class="step-connector" id="conn-3"></div>
+
+                        <div class="step-item" id="step-embeddings">
+                            <div class="step-circle"><i class="fa-solid fa-dna"></i></div>
+                            <span class="step-name">4. Embeddings</span>
+                        </div>
+                        <div class="step-connector" id="conn-4"></div>
+
+                        <div class="step-item" id="step-indexing">
+                            <div class="step-circle"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                            <span class="step-name">5. Pinecone</span>
+                        </div>
+                    </div>
+
+                    <!-- PROGRESS BAR -->
+                    <div class="progress-box">
+                        <div class="progress-meta">
+                            <span id="progressMessage">Waiting for pipeline trigger...</span>
+                            <span id="progressPercentage">0%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- LIVE PIPELINE LOG TERMINAL -->
+                    <div class="terminal-box">
+                        <div class="terminal-header">
+                            <span><i class="fa-solid fa-terminal"></i> Pipeline Console Output</span>
+                            <button id="clearLogsBtn" class="btn-xs">Clear</button>
+                        </div>
+                        <div class="terminal-body" id="terminalLogs">
+                            <div class="log-line">[SYSTEM] Ready. Click "Run Ingestion Pipeline" to index dental documents.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SIDEBAR: UPLOAD & DOCUMENTS -->
+            <aside class="sidebar-column">
+                <!-- UPLOAD CARD -->
+                <div class="dashboard-card upload-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <h3>Upload Dental Textbook</h3>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="drop-zone" id="dropZone">
+                            <i class="fa-solid fa-file-medical"></i>
+                            <h4>Drag & Drop PDF Here</h4>
+                            <p>or click to browse from your computer</p>
+                            <input type="file" id="pdfFileInput" accept=".pdf" class="hidden-input">
+                        </div>
+                        <div class="upload-status" id="uploadStatus"></div>
+                    </div>
+                </div>
+
+                <!-- DOCUMENT LIST CARD -->
+                <div class="dashboard-card docs-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fa-solid fa-folder-open"></i>
+                            <h3>Stored Books (src/)</h3>
+                        </div>
+                        <button id="refreshDocsBtn" class="btn-xs" title="Refresh list">
+                            <i class="fa-solid fa-rotate"></i>
+                        </button>
+                    </div>
+                    <div class="card-content">
+                        <ul class="doc-list" id="docList">
+                            <!-- Populated via JS -->
+                            <li class="doc-item">
+                                <div class="doc-icon"><i class="fa-solid fa-file-pdf"></i></div>
+                                <div class="doc-details">
+                                    <strong>a_20guide_20to_20orthodontics.pdf</strong>
+                                    <span>~7.6 MB • Primary Orthodontic Book</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fa-solid fa-sliders"></i>
+                    <h3>API & Model Configuration</h3>
+                </div>
+                <button class="modal-close" id="closeSettingsModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="settingsForm">
+                    <div class="form-group">
+                        <label for="openrouterKey">OpenRouter API Key:</label>
+                        <input type="password" id="openrouterKey" placeholder="sk-or-v1-..." class="form-control">
+                        <small>From <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a> (Used for LLM & embeddings)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pineconeKey">Pinecone API Key:</label>
+                        <input type="password" id="pineconeKey" placeholder="pcsk_..." class="form-control">
+                        <small>From <a href="https://app.pinecone.io/" target="_blank">app.pinecone.io</a></small>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col">
+                            <label for="pineconeIndex">Pinecone Index Name:</label>
+                            <input type="text" id="pineconeIndex" value="dental-ortho-kb" class="form-control">
+                        </div>
+                        <div class="form-group col">
+                            <label for="pineconeRegion">Pinecone Region:</label>
+                            <input type="text" id="pineconeRegion" value="us-east-1" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col">
+                            <label for="llmModel">OpenRouter LLM Model:</label>
+                            <select id="llmModel" class="form-control">
+                                <option value="openrouter/free">openrouter/free (Recommended - 100% Free, 0 Credits)</option>
+                                <option value="google/gemma-4-26b-a4b-it:free">google/gemma-4-26b-a4b-it:free (Free)</option>
+                                <option value="nvidia/nemotron-3.5-lightning:free">nvidia/nemotron-3.5-lightning:free (Free)</option>
+                                <option value="qwen/qwen3.8-27b:free">qwen/qwen3.8-27b:free (Free)</option>
+                                <option value="meta-llama/llama-3.3-70b-instruct">meta-llama/llama-3.3-70b-instruct (Requires Credits)</option>
+                            </select>
+                        </div>
+                        <div class="form-group col">
+                            <label for="embeddingModel">Embedding Model:</label>
+                            <select id="embeddingModel" class="form-control">
+                                <option value="BAAI/bge-small-en-v1.5">BAAI/bge-small-en-v1.5 (Recommended - FastEmbed Local, 0 Credits)</option>
+                                <option value="text-embedding-3-small">text-embedding-3-small (Requires OpenRouter Credits)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn-glass" id="cancelSettingsBtn">Cancel</button>
+                        <button type="submit" class="btn-primary" id="saveSettingsBtn">Save Settings</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>

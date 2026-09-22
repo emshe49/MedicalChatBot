@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Pearl | Dental & Orthodontic AI Assistant</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2">
+</head>
+<body class="theme-chatgpt">
+    <!-- APP WRAPPER: SIDEBAR + MAIN CHAT -->
+    <div class="chatgpt-layout">
+        <!-- SIDEBAR (CHATGPT STYLE) -->
+        <aside class="chat-sidebar" id="chatSidebar">
+            <!-- SIDEBAR HEADER -->
+            <div class="sidebar-header">
+                <button class="new-chat-btn" id="newChatSidebarBtn">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>New Chat</span>
+                </button>
+                <button class="sidebar-toggle-btn" id="closeSidebarBtn" title="Close Sidebar">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <!-- SEARCH OR FILTER -->
+            <div class="sidebar-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="historySearchInput" placeholder="Search dental history...">
+            </div>
+
+            <!-- CHAT HISTORY LIST -->
+            <div class="sidebar-history">
+                <div class="history-label">Recent Dental Consultations</div>
+                <div class="history-list" id="historyList">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- SIDEBAR FOOTER -->
+            <div class="sidebar-footer">
+                <a href="/admin" class="footer-link-btn" title="Open Admin Panel">
+                    <div class="footer-link-icon"><i class="fa-solid fa-sliders"></i></div>
+                    <div class="footer-link-text">
+                        <strong>Admin Knowledge Hub</strong>
+                        <span>PDF Pipeline & Vector Index</span>
+                    </div>
+                </a>
+                <div class="footer-actions">
+                    <button class="footer-action-btn" id="clearAllHistoryBtn" title="Clear all chat history">
+                        <i class="fa-regular fa-trash-can"></i>
+                        <span>Clear All</span>
+                    </button>
+                    <div class="system-status-indicator" title="Connected to Pinecone RAG">
+                        <span class="pulse-dot"></span> Online
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CHAT CONTAINER -->
+        <main class="chat-main">
+            <!-- TOP BAR -->
+            <header class="chat-topbar">
+                <div class="topbar-left">
+                    <button class="icon-btn-ghost" id="openSidebarBtn" title="Open Sidebar">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="model-badge">
+                        <div class="model-icon"><i class="fa-solid fa-tooth"></i></div>
+                        <div class="model-info">
+                            <span class="model-name">Dr. Pearl AI</span>
+                            <span class="model-sub">Dental & Orthodontic Specialist</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <button class="icon-btn-ghost" id="newChatTopbarBtn" title="Start New Conversation">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <a href="/admin" class="nav-btn btn-accent" title="Knowledge Hub">
+                        <i class="fa-solid fa-sliders"></i>
+                        <span>Admin</span>
+                    </a>
+                </div>
+            </header>
+
+            <!-- CHAT MESSAGES SCROLLER -->
+            <div class="chat-scroll-container" id="chatScrollContainer">
+                <div class="chat-column" id="chatColumn">
+                    <!-- HERO / WELCOME CARD (WHEN EMPTY) -->
+                    <div class="welcome-hero" id="welcomeHero">
+                        <div class="hero-avatar">
+                            <i class="fa-solid fa-user-doctor"></i>
+                        </div>
+                        <h2>What dental question can I help you with today?</h2>
+                        <p>
+                            I have clinical guidance on teeth alignment, braces care, oral hygiene, and conditions from the authoritative <em>Guide to Orthodontics</em>.
+                        </p>
+
+                        <div class="hero-grid">
+                            <button class="hero-card" data-prompt="What should I do if a bracket comes loose on my braces?">
+                                <div class="card-icon"><i class="fa-solid fa-circle-question"></i></div>
+                                <div class="card-body">
+                                    <strong>Loose Braces Bracket</strong>
+                                    <span>Emergency relief, wax application, and care</span>
+                                </div>
+                            </button>
+                            <button class="hero-card" data-prompt="What are the different classes of malocclusion and how are they corrected?">
+                                <div class="card-icon"><i class="fa-solid fa-teeth"></i></div>
+                                <div class="card-body">
+                                    <strong>Types of Malocclusion</strong>
+                                    <span>Class I, II, and III bite alignments</span>
+                                </div>
+                            </button>
+                            <button class="hero-card" data-prompt="What foods should I strictly avoid eating with fixed orthodontic appliances?">
+                                <div class="card-icon"><i class="fa-solid fa-apple-whole"></i></div>
+                                <div class="card-body">
+                                    <strong>Foods to Avoid with Braces</strong>
+                                    <span>Hard, sticky, and sugary foods to prevent damage</span>
+                                </div>
+                            </button>
+                            <button class="hero-card" data-prompt="Why do my teeth become sensitive to cold and hot drinks, and how can I treat it?">
+                                <div class="card-icon"><i class="fa-solid fa-snowflake"></i></div>
+                                <div class="card-body">
+                                    <strong>Tooth Sensitivity Relief</strong>
+                                    <span>Enamel erosion, exposed dentin, and desensitizing</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- MESSAGE FEED (INJECTED DYNAMICALLY) -->
+                    <div class="messages-list" id="messagesList"></div>
+                </div>
+            </div>
+
+            <!-- CHAT INPUT BAR (STICKY AT BOTTOM) -->
+            <footer class="chat-footer">
+                <div class="input-box-wrapper">
+                    <form id="chatForm" class="chatgpt-input-form">
+                        <textarea 
+                            id="userInput" 
+                            placeholder="Ask Dr. Pearl about your teeth, braces, or dental symptoms..." 
+                            rows="1"
+                            autocomplete="off"
+                        ></textarea>
+                        <div class="input-actions">
+                            <button type="button" id="micBtn" class="action-btn" title="Voice Input">
+                                <i class="fa-solid fa-microphone"></i>
+                            </button>
+                            <button type="submit" id="sendBtn" class="send-btn" title="Send message">
+                                <i class="fa-solid fa-arrow-up"></i>
+                            </button>
+                            <button type="button" id="stopBtn" class="stop-btn" title="Stop generating" style="display:none;">
+                                <i class="fa-solid fa-square"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="legal-disclaimer">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Dr. Pearl is an AI dental specialist. For severe toothaches, facial swelling, or dental trauma, consult an emergency dentist immediately.</span>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- SOURCE CITATIONS MODAL -->
+    <div class="modal-overlay" id="sourceModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fa-solid fa-book-medical"></i>
+                    <h3>Verified Dental Textbook Citations</h3>
+                </div>
+                <button class="modal-close" id="closeSourceModal">&times;</button>
+            </div>
+            <div class="modal-body" id="modalSourceContent"></div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+</body>
+</html>

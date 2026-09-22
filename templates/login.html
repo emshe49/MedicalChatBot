@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | Dental Knowledge Hub</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2">
+    <style>
+        .login-page-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            background-color: var(--bg-main);
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(2, 132, 199, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 85% 85%, rgba(13, 148, 136, 0.15) 0%, transparent 50%);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 440px;
+            background: rgba(19, 27, 46, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: 24px;
+            padding: 36px 32px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(2, 132, 199, 0.15);
+            animation: zoomIn 0.3s ease-out;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .login-logo {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #ffffff;
+            margin: 0 auto 16px;
+            box-shadow: 0 8px 24px var(--primary-glow);
+        }
+
+        .login-header h2 {
+            font-family: var(--font-heading);
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+        .login-header p {
+            color: var(--text-secondary);
+            font-size: 13.5px;
+        }
+
+        .login-alert {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            color: #fca5a5;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .login-field {
+            margin-bottom: 18px;
+        }
+
+        .login-field label {
+            display: block;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group i.field-icon {
+            position: absolute;
+            left: 14px;
+            color: var(--text-muted);
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        .login-input {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 12px 42px 12px 38px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: var(--font-body);
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .login-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
+            background: rgba(15, 23, 42, 0.95);
+        }
+
+        .toggle-pwd-btn {
+            position: absolute;
+            right: 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .toggle-pwd-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .btn-login-submit {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #ffffff;
+            border: none;
+            padding: 13px;
+            border-radius: 12px;
+            font-size: 14.5px;
+            font-weight: 600;
+            font-family: var(--font-body);
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 6px 20px var(--primary-glow);
+            transition: var(--transition);
+        }
+
+        .btn-login-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px var(--primary-glow);
+        }
+
+        .login-helper-box {
+            margin-top: 22px;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px dashed var(--border-subtle);
+            border-radius: 12px;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .helper-title {
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-fill-creds {
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: var(--accent);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .btn-fill-creds:hover {
+            background: rgba(56, 189, 248, 0.25);
+        }
+
+        .helper-row {
+            color: var(--text-secondary);
+            margin-bottom: 2px;
+            font-family: var(--font-mono);
+        }
+
+        .login-back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .login-back-link a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+
+        .login-back-link a:hover {
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body class="theme-admin">
+    <div class="login-page-wrapper">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-logo">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <h2>Admin Authentication</h2>
+                <p>Sign in to manage the Dental RAG Knowledge Base</p>
+            </div>
+
+            {% if error %}
+            <div class="login-alert">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <form method="POST" action="/login" id="loginForm">
+                <div class="login-field">
+                    <label for="email">Admin Email / Username</label>
+                    <div class="input-group">
+                        <i class="fa-solid fa-envelope field-icon"></i>
+                        <input 
+                            type="text" 
+                            id="email" 
+                            name="email" 
+                            value="{{ email or '' }}"
+                            placeholder="admin@dentalcare.com" 
+                            required 
+                            class="login-input"
+                            autocomplete="username"
+                        >
+                    </div>
+                </div>
+
+                <div class="login-field">
+                    <label for="password">Password</label>
+                    <div class="input-group">
+                        <i class="fa-solid fa-lock field-icon"></i>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            placeholder="••••••••••••" 
+                            required 
+                            class="login-input"
+                            autocomplete="current-password"
+                        >
+                        <button type="button" class="toggle-pwd-btn" id="togglePasswordBtn" title="Show/Hide Password">
+                            <i class="fa-regular fa-eye" id="pwdEyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login-submit">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                    <span>Authenticate & Access Hub</span>
+                </button>
+            </form>
+
+            <div class="login-helper-box">
+                <div class="helper-title">
+                    <span><i class="fa-solid fa-key"></i> Default Seed Credentials:</span>
+                    <button type="button" class="btn-fill-creds" id="fillCredsBtn">Auto Fill</button>
+                </div>
+                <div class="helper-row">Email: <strong>admin@dentalcare.com</strong></div>
+                <div class="helper-row">Pass: <strong>DentalAdmin2026!</strong></div>
+            </div>
+
+            <div class="login-back-link">
+                <a href="/">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Back to Patient Chat</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const emailInput = document.getElementById("email");
+        const passwordInput = document.getElementById("password");
+        const toggleBtn = document.getElementById("togglePasswordBtn");
+        const eyeIcon = document.getElementById("pwdEyeIcon");
+        const fillBtn = document.getElementById("fillCredsBtn");
+
+        toggleBtn.addEventListener("click", () => {
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                eyeIcon.classList.remove("fa-eye");
+                eyeIcon.classList.add("fa-eye-slash");
+            } else {
+                passwordInput.type = "password";
+                eyeIcon.classList.remove("fa-eye-slash");
+                eyeIcon.classList.add("fa-eye");
+            }
+        });
+
+        fillBtn.addEventListener("click", () => {
+            emailInput.value = "admin@dentalcare.com";
+            passwordInput.value = "DentalAdmin2026!";
+            emailInput.focus();
+        });
+    </script>
+</body>
+</html>
